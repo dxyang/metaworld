@@ -21,12 +21,12 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
     def __init__(self):
-        goal_low = (-0.1, 0.8, 0.05)
-        goal_high = (0.1, 0.9, 0.3)
+        goal_low = (-0.15, 0.5, 0.1)
+        goal_high = (0.15, 0.8, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.1, 0.6, 0.02)
-        obj_high = (0.1, 0.7, 0.02)
+        obj_low = (-0.65, 0.25, 0.02)
+        obj_high = (-0.65, 0.25, 0.02)
 
         super().__init__(
             self.model_name,
@@ -37,6 +37,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         self.init_config = {
             'obj_init_angle': .3,
             'obj_init_pos': np.array([0., 0.6, 0.02]),
+            # 'hand_init_pos': np.array([-0.03741099,  0.40045956,  0.33847762]), # to match the franka environment
             'hand_init_pos': np.array([0., 0.6, 0.2]),
         }
 
@@ -58,11 +59,24 @@ class SawyerReachEnvV2(SawyerXYZEnv):
     def model_name(self):
         return full_v2_path_for('sawyer_xyz/sawyer_reach_v2.xml')
 
+    @property
+    def observation_space(self):
+        goal_low = np.zeros(3) if self._partially_observable \
+            else self.goal_space.low
+        goal_high = np.zeros(3) if self._partially_observable \
+            else self.goal_space.high
+
+        return Box(
+            np.hstack((self._HAND_SPACE.low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, goal_high))
+        )
+
+
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
 
         reward, reach_dist, in_place = self.compute_reward(action, obs)
-        success = float(reach_dist <= 0.05)
+        success = bool(reach_dist <= 0.05)
 
         info = {
             'success': success,
@@ -99,8 +113,22 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             self.get_body_com('obj')[-1]
         ]
 
+    def _get_obs(self):
+        full_obs = super()._get_obs()
+        eef_xyz = full_obs[:3]
+        goal = full_obs[-3:]
+        obs = np.concatenate([eef_xyz, goal])
+
+        return obs
+
+
     def reset_model(self):
         self._reset_hand()
+
+        #             joint 1       2              3               4           5          6            7        gripper       gripper
+        # init_qpos = 1.88261579, -0.59346   , -0.95947431,  1.64832854,  0.92329905, 1.02688963,  2.32340571, -0.00017191,  0.00017174
+        #         107.86593921, -34.00275331, -54.97382851,  94.44226859, 52.90113879,  58.83644182, 133.12134128])
+
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
@@ -108,31 +136,37 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         if self.random_init:
             goal_pos = self._get_state_rand_vec()
             self._target_pos = goal_pos[3:]
-            while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
-                goal_pos = self._get_state_rand_vec()
-                self._target_pos = goal_pos[3:]
+            # while np.linalg.norm(goal_pos[:2] - self._target_pos[:2]) < 0.15:
+            #     goal_pos = self._get_state_rand_vec()
+            #     self._target_pos = goal_pos[3:]
             self._target_pos = goal_pos[-3:]
             self.obj_init_pos = goal_pos[:3]
 
         self._set_obj_xyz(self.obj_init_pos)
         self.num_resets += 1
 
-        return self._get_obs()
+        obs = self._get_obs()
+
+        # eef pos: [0.00615235, 0.6001898 , 0.19430117]
+
+        return obs
 
     def compute_reward(self, actions, obs):
         _TARGET_RADIUS = 0.05
-        tcp = self.tcp_center
-        obj = obs[4:7]
-        tcp_opened = obs[3]
+        eef = self.get_endeff_pos()
+        # obj = obs[4:7]
+        # tcp_opened = obs[3]
         target = self._target_pos
 
-        tcp_to_target = np.linalg.norm(tcp - target)
-        obj_to_target = np.linalg.norm(obj - target)
+        eef_to_target = np.linalg.norm(eef - target)
+        # obj_to_target = np.linalg.norm(obj - target)
 
         in_place_margin = (np.linalg.norm(self.hand_init_pos - target))
-        in_place = reward_utils.tolerance(tcp_to_target,
+        in_place = reward_utils.tolerance(eef_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
 
-        return [10 * in_place, tcp_to_target, in_place]
+        # dxy: clamping probably isn't necessary?
+        reward = -eef_to_target
+        return [reward, eef_to_target, eef_to_target]
