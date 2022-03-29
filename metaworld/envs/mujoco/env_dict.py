@@ -620,7 +620,8 @@ def create_observable_goal_envs():
             env._freeze_rand_vec = False
             env._set_task_called = True
             env.reset()
-            env._freeze_rand_vec = True
+            # dxy: what's the point of this? 
+            #env._freeze_rand_vec = True
             if seed is not None:
                 np.random.set_state(st0)
 
