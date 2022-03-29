@@ -83,7 +83,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         np.array([-0.525, .348, -.0525]),
         np.array([+0.525, 1.025, .7])
     )
-    max_path_length = 500
+    max_path_length = 300
 
     TARGET_RADIUS = 0.05
 
@@ -125,8 +125,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.init_right_pad = self.get_body_com('rightpad')
 
         self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([+1, +1, +1, +1]),
+            np.array([-1, -1, -1]), #, -1]),
+            np.array([+1, +1, +1]), # +1]),
         )
 
         self.isV2 = "V2" in type(self).__name__
@@ -404,7 +404,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
-        self.do_simulation([action[-1], -action[-1]])
+        self.do_simulation([0, 0])
         self.curr_path_length += 1
 
         # Running the simulator can sometimes mess up site positions, so
@@ -436,8 +436,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             # this does
             return self._last_stable_obs
 
+        done = False
+        if self.curr_path_length == self.max_path_length:
+            done = True
+        
         reward, info = self.evaluate_state(self._last_stable_obs, action)
-        return self._last_stable_obs, reward, False, info
+        #if info["success"]:
+        #    done = True
+        return self._last_stable_obs, reward, done, info
 
     def evaluate_state(self, obs, action):
         """Does the heavy-lifting for `step()` -- namely, calculating reward
@@ -468,6 +474,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:
             assert self._last_rand_vec is not None
+            print(f"dxy: whoops this shouldn't happen")
+            assert False
             return self._last_rand_vec
         else:
             rand_vec = np.random.uniform(
