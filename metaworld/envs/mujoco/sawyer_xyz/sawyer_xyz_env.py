@@ -83,7 +83,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         np.array([-0.525, .348, -.0525]),
         np.array([+0.525, 1.025, .7])
     )
-    max_path_length = 300
+    max_path_length = 200
 
     TARGET_RADIUS = 0.05
 
@@ -193,6 +193,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
+
+    def get_jas(self):
+        qpos = self.data.qpos.flat.copy()
+        return qpos[:7] # 7 joints
 
     def _get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
@@ -441,7 +445,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             done = True
         
         reward, info = self.evaluate_state(self._last_stable_obs, action)
-        #if info["success"]:
+        # if info["success"]:
         #    done = True
         return self._last_stable_obs, reward, done, info
 

@@ -170,3 +170,6 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         # dxy: clamping probably isn't necessary?
         reward = -eef_to_target
         return [reward, eef_to_target, eef_to_target]
+
+    def set_goal(self, goal):
+        self._target_pos = goal.copy()
