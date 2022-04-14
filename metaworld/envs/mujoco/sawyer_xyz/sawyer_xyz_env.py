@@ -87,6 +87,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     TARGET_RADIUS = 0.05
 
+    USE_FRANKA = True
+
     def __init__(
             self,
             model_name,
@@ -121,8 +123,13 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
-        self.init_left_pad = self.get_body_com('leftpad')
-        self.init_right_pad = self.get_body_com('rightpad')
+        if self.USE_FRANKA:
+            self.init_left_pad = self._get_site_pos('viz_leftpad')
+            self.init_right_pad = self._get_site_pos('viz_rightpad')
+        else:
+            self.init_left_pad = self.get_body_com('leftpad')
+            self.init_right_pad = self.get_body_com('rightpad')
+
 
         self.action_space = Box(
             np.array([-1, -1, -1]), #, -1]),
@@ -178,7 +185,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.mocap_high,
         )
         self.data.set_mocap_pos('mocap', new_mocap_pos)
-        self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+
+        if self.USE_FRANKA:
+            midpoint_quat = np.array([0.0, -0.3826834, -0.9238795, 0])
+            self.data.set_mocap_quat('mocap', midpoint_quat)
+        else:
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
     def discretize_goal_space(self, goals):
         assert False
@@ -242,6 +254,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             (bool): whether the gripper is touching the object
 
         """
+        assert False # not supported because these geoms on the franka are weird
         leftpad_geom_id = self.unwrapped.model.geom_name2id('leftpad_geom')
         rightpad_geom_id = self.unwrapped.model.geom_name2id('rightpad_geom')
 
@@ -408,7 +421,14 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
-        self.do_simulation([0, 0])
+        if len(action) == 4:
+            assert False
+            self.do_simulation([action[-1], -action[-1]])
+        else:
+            if self.USE_FRANKA:
+                self.do_simulation([1, 1])
+            else:
+                self.do_simulation([-1, 1])
         self.curr_path_length += 1
 
         # Running the simulator can sometimes mess up site positions, so
@@ -443,7 +463,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         done = False
         if self.curr_path_length == self.max_path_length:
             done = True
-        
+
         reward, info = self.evaluate_state(self._last_stable_obs, action)
         # if info["success"]:
         #    done = True
@@ -469,11 +489,31 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         return super().reset()
 
     def _reset_hand(self, steps=50):
-        for _ in range(steps):
-            self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([-1, 1], self.frame_skip)
-        self.init_tcp = self.tcp_center
+        if self.USE_FRANKA:
+            midpoint_pos = np.array([-0.440, 0.1, 0.426])
+            weld_delta = np.array([0.43228305, 0.26639332, 0.29577535])
+            midpoint_quat = np.array([0.0, -0.3826834, -0.9238795, 0])
+            midpoint_pos += weld_delta
+
+            old_qpos = self.sim.data.qpos.copy()
+            init_qpos = np.array([
+                0.0, -np.pi / 6, 0.0, - 2 * np.pi / 3, 0.0, 0.0, 0.0, 1.0, 1.0
+            ])
+            old_qpos[:9] = init_qpos.copy()
+            init_qvel = np.zeros_like(self.sim.data.qvel)
+            self.set_state(old_qpos, init_qvel)
+
+            for _ in range(steps):
+                self.data.set_mocap_pos('mocap', self.hand_init_pos)
+                self.data.set_mocap_quat('mocap', midpoint_quat)
+                self.do_simulation([1, 1], self.frame_skip)
+            self.init_tcp = self.tcp_center
+        else:
+            for _ in range(steps):
+                self.data.set_mocap_pos('mocap', self.hand_init_pos)
+                self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+                self.do_simulation([0, 0], self.frame_skip)
+            self.init_tcp = self.tcp_center
 
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:
@@ -513,6 +553,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                     object. Y axis not included since the caging function handles
                         successful grasping in the Y axis.
         """
+        assert False # might not work for franka
         if high_density and medium_density:
             raise ValueError("Can only be either high_density or medium_density")
         # MARK: Left-right gripper information for caging reward----------------
