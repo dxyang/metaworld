@@ -132,8 +132,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
 
         self.action_space = Box(
-            np.array([-1, -1, -1]), #, -1]),
-            np.array([+1, +1, +1]), # +1]),
+            np.array([-1, -1, -1, -1]),
+            np.array([+1, +1, +1, +1]),
         )
 
         self.isV2 = "V2" in type(self).__name__
@@ -208,7 +208,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     def get_jas(self):
         qpos = self.data.qpos.flat.copy()
-        return qpos[:7] # 7 joints
+        return qpos[:9] # 7 joints + 2 fingers
 
     def _get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
@@ -376,6 +376,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         Returns:
             np.ndarray: The flat observation array (39 elements)
         """
+        # TODO: dxy - simplify this
         # do frame stacking
         pos_goal = self._get_pos_goal()
         if self._partially_observable:
@@ -422,8 +423,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def step(self, action):
         self.set_xyz_action(action[:3])
         if len(action) == 4:
-            assert False
-            self.do_simulation([action[-1], -action[-1]])
+            if self.USE_FRANKA:
+                self.do_simulation([action[-1], action[-1]])
+            else:
+                self.do_simulation([action[-1], -action[-1]])
         else:
             if self.USE_FRANKA:
                 self.do_simulation([1, 1])
@@ -465,6 +468,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             done = True
 
         reward, info = self.evaluate_state(self._last_stable_obs, action)
+        # if you were to end the episode upon success
         # if info["success"]:
         #    done = True
         return self._last_stable_obs, reward, done, info

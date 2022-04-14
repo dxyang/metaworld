@@ -3,7 +3,7 @@
     <include file="../objects/assets/block_dependencies.xml"/>
 
     <!-- franka files -->
-    <include file="../franka_reach/third_party/franka/assets/assets.xml"/>
+    <!-- <include file="../franka_reach/third_party/franka/assets/assets.xml"/>
     <include file="../franka_reach/third_party/franka/assets/actuator0.xml"/>
 
     <compiler inertiafromgeom='auto' inertiagrouprange='3 5' angle="radian"/>
@@ -22,11 +22,11 @@
       <body name="mocap" mocap="true" pos="0 0 1.09" euler="-1.57 0 -.785">
         <site name="mocap" pos="0 0 0" rgba="0.0 0.5 0.5 0" size="0.05" type="sphere"></site>
       </body>
-    </worldbody>
+    </worldbody> -->
     <!-- franka files -->
 
     <!-- sawyer files-->
-    <!-- <include file="../objects/assets/xyz_base_dependencies.xml"/>
+    <include file="../objects/assets/xyz_base_dependencies.xml"/>
     <worldbody>
       <include file="../objects/assets/xyz_base.xml"/>
     </worldbody>
@@ -34,7 +34,7 @@
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>
         <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>
-    </actuator> -->
+    </actuator>
     <!-- sawyer files-->
 
 
