@@ -11,9 +11,9 @@ class SawyerReachV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'unused_1': obs[3],
-            'puck_pos': obs[4:7],
-            'unused_2':  obs[7:-3],
+            # 'unused_1': obs[3],
+            # 'puck_pos': obs[4:7],
+            # 'unused_2':  obs[7:-3],
             'goal_pos': obs[-3:],
         }
 
