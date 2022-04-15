@@ -56,7 +56,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.USE_FRANKA:
+        if self.use_franka:
             return full_v2_path_for('franka_xyz/franka_reach_v2.xml')
         else:
             return full_v2_path_for('sawyer_xyz/sawyer_reach_v2.xml')

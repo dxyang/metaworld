@@ -87,7 +87,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     TARGET_RADIUS = 0.05
 
-    USE_FRANKA = True
+    use_franka = False
 
     def __init__(
             self,
@@ -123,7 +123,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
-        if self.USE_FRANKA:
+        if self.use_franka:
             self.init_left_pad = self._get_site_pos('viz_leftpad')
             self.init_right_pad = self._get_site_pos('viz_rightpad')
         else:
@@ -186,7 +186,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         )
         self.data.set_mocap_pos('mocap', new_mocap_pos)
 
-        if self.USE_FRANKA:
+        if self.use_franka:
             midpoint_quat = np.array([0.0, -0.3826834, -0.9238795, 0])
             self.data.set_mocap_quat('mocap', midpoint_quat)
         else:
@@ -423,12 +423,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def step(self, action):
         self.set_xyz_action(action[:3])
         if len(action) == 4:
-            if self.USE_FRANKA:
+            if self.use_franka:
                 self.do_simulation([action[-1], action[-1]])
             else:
                 self.do_simulation([action[-1], -action[-1]])
         else:
-            if self.USE_FRANKA:
+            if self.use_franka:
                 self.do_simulation([1, 1])
             else:
                 self.do_simulation([-1, 1])
@@ -493,7 +493,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         return super().reset()
 
     def _reset_hand(self, steps=50):
-        if self.USE_FRANKA:
+        if self.use_franka:
             midpoint_pos = np.array([-0.440, 0.1, 0.426])
             weld_delta = np.array([0.43228305, 0.26639332, 0.29577535])
             midpoint_quat = np.array([0.0, -0.3826834, -0.9238795, 0])
