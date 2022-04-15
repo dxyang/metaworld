@@ -123,12 +123,12 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.discrete_goals = []
         self.active_discrete_goal = None
 
-        if self.use_franka:
-            self.init_left_pad = self._get_site_pos('viz_leftpad')
-            self.init_right_pad = self._get_site_pos('viz_rightpad')
-        else:
-            self.init_left_pad = self.get_body_com('leftpad')
-            self.init_right_pad = self.get_body_com('rightpad')
+        # if self.use_franka:
+        #     self.init_left_pad = self._get_site_pos('viz_leftpad')
+        #     self.init_right_pad = self._get_site_pos('viz_rightpad')
+        # else:
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
 
 
         self.action_space = Box(
@@ -254,21 +254,43 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             (bool): whether the gripper is touching the object
 
         """
-        assert False # not supported because these geoms on the franka are weird
-        leftpad_geom_id = self.unwrapped.model.geom_name2id('leftpad_geom')
-        rightpad_geom_id = self.unwrapped.model.geom_name2id('rightpad_geom')
+        # assert False # not supported because these geoms on the franka are weird
+        # if self.use_franka:
+        #     # leftpad_geom_strs = [f'leftpad_geom_{i}' for i in range(13)]
+        #     # leftpad_geom_ids = [self.unwrapped.model.geom_name2id(s) for s in leftpad_geom_strs]
+        #     # rightpad_geom_strs = [f'rightpad_geom_{i}' for i in range(13)]
+        #     # rightpad_geom_ids = [self.unwrapped.model.geom_name2id(s) for s in rightpad_geom_strs]
+        #     leftpad_geom_ids = [self.unwrapped.model.geom_name2id('leftpad_geom')]
+        #     rightpad_geom_ids = [self.unwrapped.model.geom_name2id('rightpad_geom')]
+        # else:
+        leftpad_geom_ids = [self.unwrapped.model.geom_name2id('leftpad_geom')]
+        rightpad_geom_ids = [self.unwrapped.model.geom_name2id('rightpad_geom')]
 
-        leftpad_object_contacts = [
-            x for x in self.unwrapped.data.contact
-            if (leftpad_geom_id in (x.geom1, x.geom2)
-                and object_geom_id in (x.geom1, x.geom2))
-        ]
+        leftpad_object_contacts = []
+        rightpad_object_contacts = []
+        for x in self.unwrapped.data.contact:
+            g1, g2 = x.geom1, x.geom2
 
-        rightpad_object_contacts = [
-            x for x in self.unwrapped.data.contact
-            if (rightpad_geom_id in (x.geom1, x.geom2)
-                and object_geom_id in (x.geom1, x.geom2))
-        ]
+            is_obj = object_geom_id in [g1, g2]
+            is_leftpad = any([id in [g1, g2] for id in leftpad_geom_ids])
+            is_rightpad = any([id in [g1, g2] for id in rightpad_geom_ids])
+
+            if is_obj and is_leftpad:
+                leftpad_object_contacts.append(x)
+            elif is_obj and is_rightpad:
+                rightpad_object_contacts.append(x)
+
+        # leftpad_object_contacts = [
+        #     x for x in self.unwrapped.data.contact
+        #     if (leftpad_geom_id in (x.geom1, x.geom2)
+        #         and object_geom_id in (x.geom1, x.geom2))
+        # ]
+
+        # rightpad_object_contacts = [
+        #     x for x in self.unwrapped.data.contact
+        #     if (rightpad_geom_id in (x.geom1, x.geom2)
+        #         and object_geom_id in (x.geom1, x.geom2))
+        # ]
 
         leftpad_object_contact_force = sum(
             self.unwrapped.data.efc_force[x.efc_address]
@@ -277,7 +299,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         rightpad_object_contact_force = sum(
             self.unwrapped.data.efc_force[x.efc_address]
             for x in rightpad_object_contacts)
-
+        # is_contact = 0 < leftpad_object_contact_force and \
+        #        0 < rightpad_object_contact_force
+        # print(f'{is_contact}, left: {leftpad_object_contact_force}, right: {rightpad_object_contact_force}')
         return 0 < leftpad_object_contact_force and \
                0 < rightpad_object_contact_force
 
@@ -376,17 +400,16 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         Returns:
             np.ndarray: The flat observation array (39 elements)
         """
-        # TODO: dxy - simplify this
-        # do frame stacking
+        # dxy - don't do frame stacking
         pos_goal = self._get_pos_goal()
         if self._partially_observable:
             pos_goal = np.zeros_like(pos_goal)
         curr_obs = self._get_curr_obs_combined_no_goal()
         # do frame stacking
-        if self.isV2:
-            obs = np.hstack((curr_obs, self._prev_obs, pos_goal))
-        else:
-            obs = np.hstack((curr_obs, pos_goal))
+        # if self.isV2:
+        #     obs = np.hstack((curr_obs, self._prev_obs, pos_goal))
+        # else:
+        obs = np.hstack((curr_obs, pos_goal))
         self._prev_obs = curr_obs
         return obs
 
@@ -411,27 +434,34 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         gripper_low = -1.
         gripper_high = +1.
 
+        # dxy - don't do frame stacking
         return Box(
-            np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
-            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
-        ) if self.isV2 else Box(
-            np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
-            np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
+            np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
+            np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
         )
+        # return Box(
+        #     np.hstack((self._HAND_SPACE.low, gripper_low, obj_low, self._HAND_SPACE.low, gripper_low, obj_low, goal_low)),
+        #     np.hstack((self._HAND_SPACE.high, gripper_high, obj_high, self._HAND_SPACE.high, gripper_high, obj_high, goal_high))
+        # ) if self.isV2 else Box(
+        #     np.hstack((self._HAND_SPACE.low, obj_low, goal_low)),
+        #     np.hstack((self._HAND_SPACE.high, obj_high, goal_high))
+        # )
 
     @_assert_task_is_set
     def step(self, action):
         self.set_xyz_action(action[:3])
         if len(action) == 4:
             if self.use_franka:
-                self.do_simulation([action[-1], action[-1]])
+                franka_action = 1 - action[-1]
+                self.do_simulation([franka_action, franka_action])
             else:
                 self.do_simulation([action[-1], -action[-1]])
         else:
-            if self.use_franka:
-                self.do_simulation([1, 1])
-            else:
-                self.do_simulation([-1, 1])
+            assert False
+            # if self.use_franka:
+            #     self.do_simulation([1, 1])
+            # else:
+            #     self.do_simulation([-1, 1])
         self.curr_path_length += 1
 
         # Running the simulator can sometimes mess up site positions, so
@@ -557,7 +587,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
                     object. Y axis not included since the caging function handles
                         successful grasping in the Y axis.
         """
-        assert False # might not work for franka
         if high_density and medium_density:
             raise ValueError("Can only be either high_density or medium_density")
         # MARK: Left-right gripper information for caging reward----------------
