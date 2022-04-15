@@ -15,8 +15,8 @@ class SawyerPickPlaceV2Policy(Policy):
             'puck_pos': obs[4:7],
             'puck_rot': obs[7:11],
             'goal_pos': obs[-3:],
-            'unused_info_curr_obs': obs[11:18],
-            '_prev_obs':obs[18:36]
+            # 'unused_info_curr_obs': obs[11:18],
+            '_prev_obs':obs[11:-3]
         }
 
     def get_action(self, obs):
@@ -29,7 +29,6 @@ class SawyerPickPlaceV2Policy(Policy):
 
         action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=10.)
         action['grab_effort'] = self._grab_effort(o_d)
-
         return action.array
 
     @staticmethod

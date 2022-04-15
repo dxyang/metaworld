@@ -116,13 +116,14 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             self.get_body_com('obj')[-1]
         ]
 
-    def _get_obs(self):
-        full_obs = super()._get_obs()
-        eef_xyz = full_obs[:3]
-        goal = full_obs[-3:]
-        obs = np.concatenate([eef_xyz, goal])
+    # TODO: dxy decide what to do about this
+    # def _get_obs(self):
+    #     full_obs = super()._get_obs()
+    #     eef_xyz = full_obs[:3]
+    #     goal = full_obs[-3:]
+    #     obs = np.concatenate([eef_xyz, goal])
 
-        return obs
+    #     return obs
 
 
     def reset_model(self):
@@ -148,23 +149,21 @@ class SawyerReachEnvV2(SawyerXYZEnv):
 
     def compute_reward(self, actions, obs):
         _TARGET_RADIUS = 0.05
-        eef = self.get_endeff_pos()
-        # obj = obs[4:7]
-        # tcp_opened = obs[3]
+        tcp = self.tcp_center
+        obj = obs[4:7]
+        tcp_opened = obs[3]
         target = self._target_pos
 
-        eef_to_target = np.linalg.norm(eef - target)
-        # obj_to_target = np.linalg.norm(obj - target)
+        tcp_to_target = np.linalg.norm(tcp - target)
+        obj_to_target = np.linalg.norm(obj - target)
 
         in_place_margin = (np.linalg.norm(self.hand_init_pos - target))
-        in_place = reward_utils.tolerance(eef_to_target,
+        in_place = reward_utils.tolerance(tcp_to_target,
                                     bounds=(0, _TARGET_RADIUS),
                                     margin=in_place_margin,
                                     sigmoid='long_tail',)
 
-        # dxy: clamping probably isn't necessary?
-        reward = -eef_to_target
-        return [reward, eef_to_target, eef_to_target]
+        return [10 * in_place, tcp_to_target, in_place]
 
     def set_goal(self, goal):
         self._target_pos = goal.copy()
