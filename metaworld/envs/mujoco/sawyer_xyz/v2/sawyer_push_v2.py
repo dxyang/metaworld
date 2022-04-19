@@ -23,12 +23,12 @@ class SawyerPushEnvV2(SawyerXYZEnv):
     TARGET_RADIUS=0.05
 
     def __init__(self):
+        goal_low = (-0.1, 0.5, 0.01)
+        goal_high = (0.1, 0.8, 0.02)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
         obj_high = (0.1, 0.7, 0.02)
-        goal_low = (-0.1, 0.8, 0.01)
-        goal_high = (0.1, 0.9, 0.02)
 
         super().__init__(
             self.model_name,
