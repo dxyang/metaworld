@@ -139,8 +139,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.isV2 = "V2" in type(self).__name__
         # Technically these observation lengths are different between v1 and v2,
         # but we handle that elsewhere and just stick with v2 numbers here
-        self._obs_obj_max_len = 14 if self.isV2 else 6
-        self._obs_obj_possible_lens = (6, 14)
+        self._obs_obj_max_len = 7 #14 if self.isV2 else 6
+        self._obs_obj_possible_lens = (7, ) #(6, 14)
 
         self._set_task_called = False
         self._partially_observable = True
@@ -452,8 +452,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self.set_xyz_action(action[:3])
         if len(action) == 4:
             if self.use_franka:
-                franka_action = 1 - action[-1]
-                self.do_simulation([franka_action, franka_action])
+                if action[-1] > 1e-3:
+                    self.do_simulation([0, 0])
+                else:
+                    self.do_simulation([1, 1])
             else:
                 self.do_simulation([action[-1], -action[-1]])
         else:
