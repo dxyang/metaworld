@@ -11,7 +11,7 @@ class SawyerPushV2Policy(Policy):
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
-            'unused_1': obs[3],
+            'gripper_distance_apart': obs[3],
             'puck_pos': obs[4:7],
             'unused_2':  obs[7:-3],
             'goal_pos': obs[-3:],
@@ -37,6 +37,7 @@ class SawyerPushV2Policy(Policy):
         if not is_franka:
             pos_puck += np.array([-0.005, 0, 0])
         pos_goal = o_d['goal_pos']
+        gripper_separation = o_d['gripper_distance_apart']
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck
         if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02:
@@ -44,9 +45,13 @@ class SawyerPushV2Policy(Policy):
         # Once XY error is low enough, drop end effector down on top of puck
         elif abs(pos_curr[2] - pos_puck[2]) > 0.04:
             return pos_puck + np.array([0., 0., 0.03])
-        # Move to the goal
+        # Wait for gripper to close before continuing to move
+        elif gripper_separation > 0.5:
+            return pos_curr
+        # Move to goal
         else:
             return pos_goal
+
 
     @staticmethod
     def _grab_effort(o_d):
