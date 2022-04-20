@@ -13,7 +13,7 @@
 <!--        <position name="panda0_joint7" joint="panda0_joint7" class="panda" kp="120" forcerange="-12 12" ctrlrange="-2.9671 2.9671"/> &lt;!&ndash; velocity="2.9671" &ndash;&gt;-->
         <!-- <position name="r_gripper_finger_joint" joint="panda0_finger_joint1" class="panda_finger" kp="500" forcerange="-70 70" ctrlrange="0 0.04"/>
         <position name="l_gripper_finger_joint" joint="panda0_finger_joint2" class="panda_finger" kp="500" forcerange="-70 70" ctrlrange="0 0.04"/> -->
-        <position name="r_gripper_finger_joint" joint="panda0_finger_joint1" class="panda_finger" kp="1500" forcelimited="false" ctrlrange="0 0.04"/> <!-- velocity=".2" -->
-        <position name="l_gripper_finger_joint" joint="panda0_finger_joint2" class="panda_finger" kp="1500" forcelimited="false" ctrlrange="0 0.04"/> <!-- velocity=".2" -->
+        <position name="r_gripper_finger_joint" joint="panda0_finger_joint1" class="panda_finger" kp="1500" forcelimited="false" ctrlrange="0 0.04"/>
+        <position name="l_gripper_finger_joint" joint="panda0_finger_joint2" class="panda_finger" kp="1500" forcelimited="false" ctrlrange="0 0.04"/>
     </actuator>
 </mujocoinclude>

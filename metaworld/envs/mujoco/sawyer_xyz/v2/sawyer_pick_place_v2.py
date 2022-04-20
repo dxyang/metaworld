@@ -107,6 +107,11 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             self.get_body_com('obj')[-1]
         ]
 
+    def is_not_acceptable_init(self, state_vec):
+        obj_init = state_vec[:2]
+        goal =  state_vec[3:5]
+        return bool(np.linalg.norm(obj_init - goal) < 0.15)
+
     def reset_model(self):
         self._reset_hand()
         self._target_pos = self.goal.copy()

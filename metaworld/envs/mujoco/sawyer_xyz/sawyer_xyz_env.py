@@ -554,8 +554,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def _get_state_rand_vec(self):
         if self._freeze_rand_vec:
             assert self._last_rand_vec is not None
-            print(f"dxy: whoops this shouldn't happen")
-            assert False
             return self._last_rand_vec
         else:
             rand_vec = np.random.uniform(
