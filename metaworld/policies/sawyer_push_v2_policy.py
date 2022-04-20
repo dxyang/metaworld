@@ -25,7 +25,7 @@ class SawyerPushV2Policy(Policy):
             'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=5.)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=10.)
         action['grab_effort'] = self._grab_effort(o_d)
 
         return action.array

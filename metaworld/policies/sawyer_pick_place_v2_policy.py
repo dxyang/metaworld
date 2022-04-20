@@ -40,7 +40,7 @@ class SawyerPickPlaceV2Policy(Policy):
         # If error in the XY plane is greater than 0.02, place end effector above the puck
         if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.02:
             return pos_puck + np.array([0., 0., 0.1])
-        # Once XY error is low enough, drop end effector down on top of puck``
+        # Once XY error is low enough, drop end effector down on top of puck
         elif abs(pos_curr[2] - pos_puck[2]) > 0.05 and pos_puck[-1] < 0.04:
             return pos_puck + np.array([0., 0., 0.01])
         # Wait for gripper to close before continuing to move
