@@ -368,11 +368,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         # clipping removes the effects of this random extra distance
         # that is produced by mujoco
         gripper_distance_apart = np.linalg.norm(finger_right - finger_left)
-        # if self.use_franka:
-        #     gripper_distance_apart = np.clip(gripper_distance_apart / 0.1, 0., 1.)
-        # else:
-        #     gripper_distance_apart = np.clip(gripper_distance_apart / 0.1, 0., 1.)
-        # import pdb; pdb.set_trace()
+        gripper_distance_apart = np.clip(gripper_distance_apart / 0.1, 0., 1.)
 
         obs_obj_padded = np.zeros(self._obs_obj_max_len)
 
