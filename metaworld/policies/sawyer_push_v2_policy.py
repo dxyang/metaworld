@@ -17,7 +17,7 @@ class SawyerPushV2Policy(Policy):
             'goal_pos': obs[-3:],
         }
 
-    def get_action(self, obs):
+    def get_action(self, obs, is_franka: bool = False):
         o_d = self._parse_obs(obs)
 
         action = Action({
@@ -25,15 +25,17 @@ class SawyerPushV2Policy(Policy):
             'grab_effort': 3
         })
 
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=10.)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d, is_franka), p=10.)
         action['grab_effort'] = self._grab_effort(o_d)
 
         return action.array
 
     @staticmethod
-    def _desired_pos(o_d):
+    def _desired_pos(o_d, is_franka: bool = False):
         pos_curr = o_d['hand_pos']
-        pos_puck = o_d['puck_pos'] + np.array([-0.005, 0, 0])
+        pos_puck = o_d['puck_pos']
+        if not is_franka:
+            pos_pick += np.array([-0.005, 0, 0])
         pos_goal = o_d['goal_pos']
 
         # If error in the XY plane is greater than 0.02, place end effector above the puck

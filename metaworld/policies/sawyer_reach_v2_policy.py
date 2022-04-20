@@ -17,7 +17,7 @@ class SawyerReachV2Policy(Policy):
             'goal_pos': obs[-3:],
         }
 
-    def get_action(self, obs):
+    def get_action(self, obs, is_franka: bool = False):
         o_d = self._parse_obs(obs)
 
         action = Action({

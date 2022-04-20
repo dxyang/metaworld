@@ -34,6 +34,11 @@
               contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" material="block_wood"
         />
       </body>
+      <!-- <body name="coordinate_frame">
+          <geom name="x" contype="0" conaffinity="0" type="capsule" fromto="0 0.6 0.02  1.0 0.6 0.02" size="0.005" rgba=".9 0 0 0.5"/>
+          <geom name="y" contype="0" conaffinity="0" type="capsule" fromto="0 0.6 0.02  0 1.6 0.02" size="0.005" rgba="0 .9 0 0.5"/>
+          <geom name="z" contype="0" conaffinity="0" type="capsule" fromto="0 0.6 0.02  0 0.6 1.02" size="0.005" rgba="0 0 .9 0.5"/>
+      </body> -->
     </worldbody>
 
     <worldbody>
