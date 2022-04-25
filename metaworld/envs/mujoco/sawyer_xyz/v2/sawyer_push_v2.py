@@ -85,8 +85,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             'near_object': float(tcp_to_obj <= 0.03),
             'grasp_success': float(
                 self.touching_main_object and
-                (tcp_opened > 0) and
-                (obj[2] - 0.02 > self.obj_init_pos[2])
+                (tcp_opened > 0)
             ),
             'grasp_reward': object_grasped,
             'in_place_reward': in_place,
