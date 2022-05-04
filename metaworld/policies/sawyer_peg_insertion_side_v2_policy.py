@@ -7,7 +7,6 @@ from metaworld.policies.policy import Policy, assert_fully_parsed, move
 class SawyerPegInsertionSideV2Policy(Policy):
 
     @staticmethod
-    @assert_fully_parsed
     def _parse_obs(obs):
         return {
             'hand_pos': obs[:3],
