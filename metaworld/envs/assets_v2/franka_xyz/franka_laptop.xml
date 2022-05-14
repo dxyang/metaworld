@@ -1,6 +1,6 @@
 <mujoco>
     <include file="../scene/basic_scene.xml"/>
-    <include file="../objects/assets/block_dependencies.xml"/>
+    <include file="../objects/assets/laptop_dependencies.xml"/>
 
     <!-- franka files -->
     <include file="../franka_reach/third_party/franka/assets/assets.xml"/>
@@ -26,31 +26,13 @@
     <!-- franka files -->
 
     <worldbody>
-      <body name="obj" pos="0 0.6 0.02">
-          <joint name="objjoint" type="free" limited='false' damping="0." armature="0."/>
-          <inertial pos="0 0 0" mass=".25" diaginertia="8.80012e-04 8.80012e-04 8.80012e-04"/>
-          <geom name="objGeom" type="box" pos="0 0 0" solimp="0.99 0.99 0.01"
-                size="0.03 0.02 0.02" rgba="1 0 0 1" solref="0.01 1"
-                contype="1" conaffinity="1" friction="1 0.1 0.002" condim="4" material="block_wood"
-          />
-      </body>
-      <!-- <body name="coordinate_frame">
-          <geom name="x" contype="0" conaffinity="0" type="capsule" fromto="0 0.6 0.02  1.0 0.6 0.02" size="0.005" rgba=".9 0 0 0.5"/>
-          <geom name="y" contype="0" conaffinity="0" type="capsule" fromto="0 0.6 0.02  0 1.6 0.02" size="0.005" rgba="0 .9 0 0.5"/>
-          <geom name="z" contype="0" conaffinity="0" type="capsule" fromto="0 0.6 0.02  0 0.6 1.02" size="0.005" rgba="0 0 .9 0.5"/>
-      </body> -->
-    </worldbody>
+      <body name="laptop" pos="0 0.8 0">
+        <include file="../objects/assets/laptop.xml"/>
 
-    <worldbody>
-      <!-- reach goal -->
-      <site name="goal" pos="-0.1 0.8 0.2" size="0.02"
-            rgba="0.8 0 0 1"/>
+      </body>
     </worldbody>
 
     <equality>
         <weld body1="mocap" body2="hand" solref="0.008 1"></weld>
     </equality>
-
-
-
 </mujoco>

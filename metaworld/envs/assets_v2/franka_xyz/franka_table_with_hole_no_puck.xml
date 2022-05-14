@@ -1,7 +1,5 @@
 <mujoco>
-    <include file="../scene/basic_scene.xml"/>
-    <include file="../objects/assets/drawer_dependencies.xml"/>
-
+    <include file="../scene/basic_scene_c.xml"/>
     <!-- franka files -->
     <include file="../franka_reach/third_party/franka/assets/assets.xml"/>
     <include file="../franka_reach/third_party/franka/assets/actuator0.xml"/>
@@ -26,15 +24,11 @@
     <!-- franka files -->
 
     <worldbody>
-        <body name="drawer" pos="0. 0.9 0">
-            <include file="../objects/assets/drawer.xml"/>
-        </body>
-
-        <site name="goal" pos="0. 0.74 0.05" size="0.02"
-              rgba="0 0.8 0 1"/>
+      <site name="goal" pos="0. 0.84 -0.02" size="0.02"
+                rgba="0 0 0.8 1"/>
     </worldbody>
+
     <equality>
         <weld body1="mocap" body2="hand" solref="0.008 1"></weld>
     </equality>
-
 </mujoco>

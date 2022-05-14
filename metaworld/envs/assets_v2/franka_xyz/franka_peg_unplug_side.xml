@@ -1,6 +1,6 @@
 <mujoco>
     <include file="../scene/basic_scene.xml"/>
-    <include file="../objects/assets/drawer_dependencies.xml"/>
+    <include file="../objects/assets/plug_dependencies.xml"/>
 
     <!-- franka files -->
     <include file="../franka_reach/third_party/franka/assets/assets.xml"/>
@@ -20,21 +20,31 @@
       </body>
 
       <body name="mocap" mocap="true" pos="0 0 1.09" euler="-1.57 0 -.785">
-        <site name="mocap" pos="0 0 0" rgba="0.0 0.5 0.5 0" size="0.05" type="sphere"></site>
+        <site name="mocap" pos="0 0 0" rgba="0.0 0.5 0.5 0.0" size="0.05" type="sphere"></site>
       </body>
     </worldbody>
     <!-- franka files -->
 
     <worldbody>
-        <body name="drawer" pos="0. 0.9 0">
-            <include file="../objects/assets/drawer.xml"/>
-        </body>
+      <body name="plug1" pos="-.252 .6 .131">
+        <joint type="free"/>
+        <include file="../objects/assets/plug.xml"/>
+        <!-- <geom pos="-0.035 0 0" size="0.036 0.021 0.021" type="box" mass=".001" rgba="0.8 0 0 1"/>
+        <geom euler="0 1.57 0" pos="-0.013 0 0" size="0.045  0.007" type="cylinder" mass=".001" rgba="0.8 0 0 1"/>
+        <geom pos="0.06 0 0" size="0.04" type="sphere" mass=".001" rgba="0.8 0 0 1"/>
+        <geom euler="0 1.57 0" pos="0.025 0.0 -0.0" size="0.038 0.038 0.035" type="box" mass=".001"/> -->
+      </body>
 
-        <site name="goal" pos="0. 0.74 0.05" size="0.02"
-              rgba="0 0.8 0 1"/>
+      <body name="box" pos="-.3 .6 0">
+        <include file="../objects/assets/plug_wall.xml"/>
+      </body>
+
+
+        <site name="goal" pos="0 0.6 0.05" size="0.01" rgba="0.8 0 0 1"/>
+
     </worldbody>
+
     <equality>
         <weld body1="mocap" body2="hand" solref="0.008 1"></weld>
     </equality>
-
 </mujoco>
