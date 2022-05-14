@@ -34,7 +34,7 @@ class SawyerCoffeePushV2Policy(Policy):
     @staticmethod
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
-        pos_mug = o_d['mug_pos'] + np.array([.01, .0, .05])
+        pos_mug = o_d['mug_pos'] + np.array([0.0, .0, .05])
         pos_goal = o_d['goal_xy']
 
         if np.linalg.norm(pos_curr[:2] - pos_mug[:2]) > 0.06:

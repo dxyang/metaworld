@@ -35,6 +35,7 @@ class SawyerPushV2Policy(Policy):
         pos_curr = o_d['hand_pos']
         pos_puck = o_d['puck_pos']
         if not is_franka:
+            # makes a difference for the puck but not the block
             pos_puck += np.array([-0.005, 0, 0])
         pos_goal = o_d['goal_pos']
         gripper_separation = o_d['gripper_distance_apart']

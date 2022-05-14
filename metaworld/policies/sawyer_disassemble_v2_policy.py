@@ -3,12 +3,16 @@ import numpy as np
 from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, assert_fully_parsed, move
 
-
+# going_up_hack = False
 class SawyerDisassembleV2Policy(Policy):
 
     @staticmethod
     @assert_fully_parsed
     def _parse_obs(obs):
+        # if np.allclose(obs[:3], np.array([0, 0.4, 0.2]), rtol=0.1, atol=0.1):
+        #     global going_up_hack
+        #     going_up_hack = False
+
         return {
             'hand_pos': obs[:3],
             'gripper': obs[3],
@@ -45,6 +49,22 @@ class SawyerDisassembleV2Policy(Policy):
         # Move upwards
         else:
             return pos_curr + np.array([.0, .0, .1])
+
+        # global going_up_hack
+
+        # if not going_up_hack:
+        #     # If XY error is greater than 0.02, place end effector above the wrench
+        #     if np.linalg.norm(pos_curr[:2] - pos_wrench[:2]) > 0.02:
+        #         return pos_wrench + np.array([0., 0., 0.1])
+        #     # Once XY error is low enough, drop end effector down on top of wrench
+        #     elif abs(pos_curr[2] - pos_wrench[2]) > 0.035:
+        #         return pos_wrench
+        #     # Move upwards
+        #     else:
+        #         going_up_hack = True
+
+        # if going_up_hack:
+        #     return pos_curr + np.array([.0, .0, .1])
 
     @staticmethod
     def _grab_effort(o_d):
