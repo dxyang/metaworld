@@ -12,8 +12,8 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, -0.15)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.05, 0.8, 0.0)
-        obj_high = (0.05, 0.85, 0.0)
+        obj_low = (-0.05, 0.75, 0.0)
+        obj_high = (0.05, 0.8, 0.0)
         self._handle_length = 0.175
         self._target_radius = 0.07
 
@@ -41,7 +41,10 @@ class SawyerFaucetOpenEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_faucet.xml')
+        if self.use_franka: # franka
+            return full_v2_path_for('franka_xyz/franka_faucet.xml')
+        else:
+            return full_v2_path_for('sawyer_xyz/sawyer_faucet.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

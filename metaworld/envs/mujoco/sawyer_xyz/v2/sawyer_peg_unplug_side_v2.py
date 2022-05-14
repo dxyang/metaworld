@@ -10,8 +10,8 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
     def __init__(self):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.25, 0.6, -0.001)
-        obj_high = (-0.15, 0.8, 0.001)
+        obj_low = (-0.25, 0.55, -0.001)
+        obj_high = (-0.15, 0.75, 0.001)
         goal_low = obj_low + np.array([.194, .0, .131])
         goal_high = obj_high + np.array([.194, .0, .131])
 
@@ -23,7 +23,7 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             'obj_init_pos': np.array([-0.225, 0.6, 0.05]),
-            'hand_init_pos': np.array(((0, 0.6, 0.2))),
+            'hand_init_pos': np.array(((0, 0.4, 0.2))),
         }
         self.goal = np.array([-0.225, 0.6, 0.0])
         self.obj_init_pos = self.init_config['obj_init_pos']
@@ -37,7 +37,10 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_peg_unplug_side.xml')
+        if self.use_franka: # franka
+            return full_v2_path_for('franka_xyz/franka_peg_unplug_side.xml')
+        else:
+            return full_v2_path_for('sawyer_xyz/sawyer_peg_unplug_side.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -110,17 +113,17 @@ class SawyerPegUnplugSideEnvV2(SawyerXYZEnv):
             desired_gripper_effort=0.8,
             high_density=True)
         in_place_margin = np.linalg.norm(self.obj_init_pos - target)
-        
+
         in_place = reward_utils.tolerance(
             obj_to_target,
             bounds=(0, 0.05),
             margin=in_place_margin,
             sigmoid='long_tail',
         )
-        grasp_success = (tcp_opened > 0.5 and 
+        grasp_success = (tcp_opened > 0.5 and
             (obj[0] - self.obj_init_pos[0] > 0.015))
-        
-        
+
+
         reward = 2 * object_grasped
 
         if grasp_success and tcp_to_obj < 0.035:

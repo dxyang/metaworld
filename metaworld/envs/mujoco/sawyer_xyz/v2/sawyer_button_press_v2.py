@@ -12,7 +12,7 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.85, 0.115)
-        obj_high = (0.1, 0.9, 0.115)
+        obj_high = (0.1, 0.85, 0.115)
 
         super().__init__(
             self.model_name,
@@ -38,7 +38,10 @@ class SawyerButtonPressEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_button_press.xml')
+        if self.use_franka: # franka
+            return full_v2_path_for('franka_xyz/franka_button_press.xml')
+        else:
+            return full_v2_path_for('sawyer_xyz/sawyer_button_press.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

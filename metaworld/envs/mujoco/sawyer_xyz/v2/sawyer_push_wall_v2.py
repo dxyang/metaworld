@@ -33,8 +33,8 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.05, 0.6, 0.015)
         obj_high = (0.05, 0.65, 0.015)
-        goal_low = (-0.05, 0.85, 0.01)
-        goal_high = (0.05, 0.9, 0.02)
+        goal_low = (-0.05, 0.8, 0.01)
+        goal_high = (0.05, 0.85, 0.02)
 
         super().__init__(
             self.model_name,
@@ -64,7 +64,10 @@ class SawyerPushWallEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_push_wall_v2.xml')
+        if self.use_franka: # franka
+            return full_v2_path_for('franka_xyz/franka_push_wall_v2.xml')
+        else:
+            return full_v2_path_for('sawyer_xyz/sawyer_push_wall_v2.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

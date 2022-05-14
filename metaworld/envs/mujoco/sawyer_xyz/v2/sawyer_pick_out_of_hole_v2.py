@@ -42,7 +42,10 @@ class SawyerPickOutOfHoleEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_pick_out_of_hole.xml')
+        if self.use_franka: # franka
+            return full_v2_path_for('franka_xyz/franka_pick_out_of_hole.xml')
+        else:
+            return full_v2_path_for('sawyer_xyz/sawyer_pick_out_of_hole.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

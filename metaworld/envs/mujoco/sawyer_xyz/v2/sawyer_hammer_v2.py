@@ -38,7 +38,10 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_hammer.xml')
+        if self.use_franka: # franka
+            return full_v2_path_for('franka_xyz/franka_hammer.xml')
+        else:
+            return full_v2_path_for('sawyer_xyz/sawyer_hammer.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

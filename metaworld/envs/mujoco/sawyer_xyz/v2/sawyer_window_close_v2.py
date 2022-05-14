@@ -44,7 +44,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        
+
         self.liftThresh = liftThresh
 
         self._random_reset_space = Box(
@@ -58,7 +58,10 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_window_horizontal.xml')
+        if self.use_franka: # franka
+            return full_v2_path_for('franka_xyz/franka_window_horizontal.xml')
+        else:
+            return full_v2_path_for('sawyer_xyz/sawyer_window_horizontal.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -114,7 +117,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         obj = self._get_pos_objects()
         tcp = self.tcp_center
         target = self._target_pos.copy()
-        
+
         target_to_obj = (obj[0] - target[0])
         target_to_obj = np.linalg.norm(target_to_obj)
         target_to_obj_init = (self.window_handle_pos_init[0] - target[0])
@@ -141,7 +144,7 @@ class SawyerWindowCloseEnvV2(SawyerXYZEnv):
         object_grasped = reach
 
         reward = 10 * reward_utils.hamacher_product(reach, in_place)
-        
+
         return (reward,
                tcp_to_obj,
                tcp_opened,

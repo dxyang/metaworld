@@ -32,7 +32,7 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        
+
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -45,7 +45,10 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_drawer.xml')
+        if self.use_franka: # franka
+            return full_v2_path_for('franka_xyz/franka_drawer.xml')
+        else:
+            return full_v2_path_for('sawyer_xyz/sawyer_drawer.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

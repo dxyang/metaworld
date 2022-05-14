@@ -23,11 +23,11 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, 0.07)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.21, 0.65, 0.02)
-        obj_high = (-0.03, 0.75, 0.02)
+        obj_low = (-0.21, 0.68, 0.02)
+        obj_high = (-0.03, 0.72, 0.02)
         # Small bounds around the center of the target bin
-        goal_low = np.array([0.1199, 0.699, -0.001])
-        goal_high = np.array([0.1201, 0.701, +0.001])
+        goal_low = np.array([0.07, 0.65, -0.001])
+        goal_high = np.array([0.17, 0.75, +0.001])
 
         super().__init__(
             self.model_name,
@@ -65,7 +65,10 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_bin_picking.xml')
+        if self.use_franka: # franka
+            return full_v2_path_for('franka_xyz/franka_bin_picking.xml')
+        else:
+            return full_v2_path_for('sawyer_xyz/sawyer_bin_picking.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -111,11 +114,12 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
         obj_height = self.get_body_com('obj')[2]
 
         if self.random_init:
-            self.obj_init_pos = self._get_state_rand_vec()[:2]
+            rand_vec = self._get_state_rand_vec()
+            self.obj_init_pos = rand_vec[:2].copy()
             self.obj_init_pos = np.concatenate((self.obj_init_pos, [obj_height]))
+            self._target_pos = rand_vec[3:].copy()
 
         self._set_obj_xyz(self.obj_init_pos)
-        self._target_pos = self.get_body_com('bin_goal')
         self._target_to_obj_init = None
 
         return self._get_obs()

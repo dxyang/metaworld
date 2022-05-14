@@ -41,7 +41,10 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_assembly_peg.xml')
+        if self.use_franka:
+            return full_v2_path_for('franka_xyz/franka_assembly_peg.xml')
+        else:
+            return full_v2_path_for('sawyer_xyz/sawyer_assembly_peg.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

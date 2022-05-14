@@ -32,7 +32,7 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.init_config['obj_init_pos']
         self.obj_init_angle = self.init_config['obj_init_angle']
         self.hand_init_pos = self.init_config['hand_init_pos']
-        
+
         self.num_resets = 0
 
         self._random_reset_space = Box(
@@ -43,7 +43,10 @@ class SawyerShelfPlaceEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return full_v2_path_for('sawyer_xyz/sawyer_shelf_placing.xml')
+        if self.use_franka: # franka
+            return full_v2_path_for('franka_xyz/franka_shelf_placing.xml')
+        else:
+            return full_v2_path_for('sawyer_xyz/sawyer_shelf_placing.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
