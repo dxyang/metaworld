@@ -82,7 +82,8 @@ class SawyerButtonPressTopdownEnvV2(SawyerXYZEnv):
         return self.sim.data.get_body_xquat('button')
 
     def _set_obj_xyz(self, pos):
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
+        assert False
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9] = pos

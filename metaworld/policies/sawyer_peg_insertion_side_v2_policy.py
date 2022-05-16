@@ -50,14 +50,12 @@ class SawyerPegInsertionSideV2Policy(Policy):
             if np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > .04:
                 return pos_peg + np.array([.0, .0, .3])
             elif abs(pos_curr[2] - pos_peg[2]) > .025:
-                print(f"b:f{abs(pos_curr[2] - pos_peg[2])}")
                 return pos_peg
             else:
                 hack = True
 
         if hack:
             if np.linalg.norm(pos_peg[1:] - pos_hole[1:]) > 0.04:
-                print(f"c: {np.linalg.norm(pos_peg[1:] - pos_hole[1:])}")
                 return pos_hole + np.array([.5, .0, .0])
             else:
                 return pos_hole
