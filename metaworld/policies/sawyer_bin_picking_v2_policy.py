@@ -13,8 +13,7 @@ class SawyerBinPickingV2Policy(Policy):
             'hand_pos': obs[:3],
             'gripper': obs[3],
             'cube_pos': obs[4:7],
-            'blah': obs[7:-3],
-            'goal': obs[-3:],
+            'extra_info': obs[7:]
         }
 
     def get_action(self, obs):
@@ -35,24 +34,23 @@ class SawyerBinPickingV2Policy(Policy):
         pos_curr = o_d['hand_pos']
         pos_cube = o_d['cube_pos'] + np.array([.0, .0, .03])
         pos_bin = np.array([.12, .7, .02])
-        pos_goal = o_d['goal']
 
         # This forces the scripted policy to pretend like the cube is located
         # more centrally in the bin (in Y direction). When the fingers close,
         # they'll drag the cube so that it's no longer located near an edge.
         # This ensures that the fingers don't get caught outside of the bin.
-        # pos_cube[1] = max(.675, min(pos_cube[1], .725))
+        pos_cube[1] = max(.675, min(pos_cube[1], .725))
 
         if np.linalg.norm(pos_curr[:2] - pos_cube[:2]) > .02:
             return pos_cube + np.array([.0, .0, .15])
         elif abs(pos_curr[2] - pos_cube[2]) > .01:
             return pos_cube
-        elif np.linalg.norm(pos_curr[:2] - pos_goal[:2]) > .02:
+        elif np.linalg.norm(pos_curr[:2] - pos_bin[:2]) > .02:
             if pos_curr[2] < 0.15:
                 return pos_curr + np.array([.0, .0, .1])
-            return np.array([*pos_goal[:2], .18])
+            return np.array([*pos_bin[:2], .18])
         else:
-            return pos_goal
+            return pos_bin
 
     @staticmethod
     def _grab_effort(o_d):
@@ -60,7 +58,7 @@ class SawyerBinPickingV2Policy(Policy):
         pos_cube = o_d['cube_pos'] + np.array([.0, .0, .03])
 
         # See note above in `_desired_pos`
-        # pos_cube[1] = max(.675, min(pos_cube[1], .725))
+        pos_cube[1] = max(.675, min(pos_cube[1], .725))
 
         if (np.linalg.norm(pos_curr[:2] - pos_cube[:2]) > 0.02
             or abs(pos_curr[2] - pos_cube[2]) > 0.02):

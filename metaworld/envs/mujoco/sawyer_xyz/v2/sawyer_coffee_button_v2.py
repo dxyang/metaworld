@@ -45,10 +45,7 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_coffee.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_coffee.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_coffee.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -89,12 +86,8 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flatten()
         qvel = self.data.qvel.flatten()
-        if self.use_franka:
-            qpos[9:12] = pos.copy()
-            qvel[:6] = 0
-        else:
-            qpos[0:3] = pos.copy()
-            qvel[9:15] = 0
+        qpos[0:3] = pos.copy()
+        qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
@@ -106,13 +99,12 @@ class SawyerCoffeeButtonEnvV2(SawyerXYZEnv):
             'coffee_machine'
         )] = self.obj_init_pos
 
-        # THIS IS SUS
         pos_mug = self.obj_init_pos + np.array([.0, -.22, .0])
         self._set_obj_xyz(pos_mug)
 
         pos_button = self.obj_init_pos + np.array([.0, -.22, .3])
         self._target_pos = pos_button + np.array([.0, self.max_dist, .0])
-        # end of reset_model
+
         return self._get_obs()
 
     def compute_reward(self, action, obs):

@@ -13,8 +13,8 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
 
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
-        obj_low = (-0.05, 0.75, 0.1149)
-        obj_high = (0.05, 0.85, 0.1151)
+        obj_low = (-0.05, 0.85, 0.1149)
+        obj_high = (0.05, 0.9, 0.1151)
 
         super().__init__(
             self.model_name,
@@ -23,7 +23,7 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
         )
 
         self.init_config = {
-            'obj_init_pos': np.array([0., 0.85, 0.115], dtype=np.float32),
+            'obj_init_pos': np.array([0., 0.9, 0.115], dtype=np.float32),
             'hand_init_pos': np.array([0, 0.4, 0.2], dtype=np.float32),
         }
         self.goal = np.array([0, 0.84, 0.12])
@@ -42,10 +42,7 @@ class SawyerButtonPressWallEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_button_press_wall.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_button_press_wall.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_button_press_wall.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

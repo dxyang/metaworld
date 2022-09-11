@@ -13,8 +13,7 @@ class SawyerPlateSlideBackV2Policy(Policy):
             'hand_pos': obs[:3],
             'unused_1': obs[3],
             'puck_pos': obs[4:7],
-            'unused_2': obs[7:-3],
-            'goal': obs[-3:],
+            'unused_2': obs[7:],
         }
 
     def get_action(self, obs):
@@ -34,8 +33,6 @@ class SawyerPlateSlideBackV2Policy(Policy):
     def _desired_pos(o_d):
         pos_curr = o_d['hand_pos']
         pos_puck = o_d['puck_pos'] + np.array([.0, -.065, .025])
-        goal = o_d['goal']
-        hand_puck_offset = o_d['puck_pos'] - goal
 
         if np.linalg.norm(pos_curr[:2] - pos_puck[:2]) > 0.01:
             return pos_puck + np.array([.0, .0, .1])
@@ -46,4 +43,4 @@ class SawyerPlateSlideBackV2Policy(Policy):
         elif pos_curr[1] > .6:
             return np.array([.15, .55, pos_curr[2]])
         else:
-            return goal - hand_puck_offset #np.array([pos_curr[0] - .1, .55, pos_curr[2]])
+            return np.array([pos_curr[0] - .1, .55, pos_curr[2]])

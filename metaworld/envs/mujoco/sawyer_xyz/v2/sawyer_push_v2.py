@@ -23,12 +23,12 @@ class SawyerPushEnvV2(SawyerXYZEnv):
     TARGET_RADIUS=0.05
 
     def __init__(self):
-        goal_low = (-0.1, 0.5, 0.01)
-        goal_high = (0.1, 0.8, 0.02)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
         obj_high = (0.1, 0.7, 0.02)
+        goal_low = (-0.1, 0.8, 0.01)
+        goal_high = (0.1, 0.9, 0.02)
 
         super().__init__(
             self.model_name,
@@ -38,8 +38,10 @@ class SawyerPushEnvV2(SawyerXYZEnv):
 
         self.init_config = {
             'obj_init_angle': .3,
-            'obj_init_pos': np.array([0., 0.6, 0.02]),
-            'hand_init_pos': np.array([0., 0.6, 0.2]),
+            # 'obj_init_pos': np.array([0., 0.6, 0.02]),
+            # 'hand_init_pos': np.array([0., 0.6, 0.2]),
+            'obj_init_pos': np.array([0., 0.4, 0.02]),
+            'hand_init_pos': np.array([0., 0.4, 0.08]),            
         }
 
         self.goal = np.array([0.1, 0.8, 0.02])
@@ -58,14 +60,14 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             np.hstack((obj_high, goal_high)),
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
+
+        self.reduced_obs_size = 10 #gripper x,y,z; gripper openness; obj x,y,z; goal x,y,z
+
         self.num_resets = 0
 
     @property
     def model_name(self):
-        if self.use_franka:
-            return full_v2_path_for('franka_xyz/franka_push_v2.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_push_v2.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_push_v2.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -85,7 +87,8 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             'near_object': float(tcp_to_obj <= 0.03),
             'grasp_success': float(
                 self.touching_main_object and
-                (tcp_opened > 0)
+                (tcp_opened > 0) and
+                (obj[2] - 0.02 > self.obj_init_pos[2])
             ),
             'grasp_reward': object_grasped,
             'in_place_reward': in_place,
@@ -117,11 +120,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             adjusted_pos[1],
             self.get_body_com('obj')[-1]
         ]
-
-    def is_not_acceptable_init(self, state_vec):
-        obj_init = state_vec[:2]
-        goal =  state_vec[3:5]
-        return bool(np.linalg.norm(obj_init - goal) < 0.15)
 
     def reset_model(self):
         self._reset_hand()
@@ -181,3 +179,24 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place
         )
+
+    def reset_model_ood(self, obj_pos=None, goal_pos=None, hand_pos=None):
+        #hand
+        if hand_pos is not None:
+            self.hand_init_pos = hand_pos        
+        self._reset_hand()
+        #obj
+        if obj_pos is not None:
+            self.init_config['obj_init_pos'] = np.array(obj_pos, dtype=np.float32)
+        #goal
+        if goal_pos is not None:
+            self.goal = goal_pos
+        self._target_pos = self.goal.copy()
+        self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self._set_obj_xyz(self.obj_init_pos)
+        self.num_resets += 1
+        return self._get_obs(), obj_pos, goal_pos
+    
+    def reduced_obs(self, o):
+        return np.concatenate([o[:7], o[-3:]])        

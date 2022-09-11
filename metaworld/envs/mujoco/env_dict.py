@@ -611,8 +611,7 @@ def create_observable_goal_envs():
     for env_name, env_cls in ALL_V2_ENVIRONMENTS.items():
         d = {}
 
-        def initialize(env, use_franka: bool = False, seed=None):
-            env.use_franka = use_franka
+        def initialize(env, seed=None):
             if seed is not None:
                 st0 = np.random.get_state()
                 np.random.seed(seed)
@@ -621,12 +620,12 @@ def create_observable_goal_envs():
             env._freeze_rand_vec = False
             env._set_task_called = True
             env.reset()
-            # dxy: what's the point of this?
-            #env._freeze_rand_vec = True
+            env._freeze_rand_vec = True
             if seed is not None:
                 np.random.set_state(st0)
 
         d['__init__'] = initialize
+        d['__module__'] = __name__
         og_env_name = re.sub("(^|[-])\s*([a-zA-Z])",
                              lambda p: p.group(0).upper(), env_name)
         og_env_name = og_env_name.replace("-", "")

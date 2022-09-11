@@ -1,4 +1,5 @@
 import numpy as np
+import pdb
 from gym.spaces import Box
 from scipy.spatial.transform import Rotation
 
@@ -44,10 +45,7 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_table_with_hole.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_table_with_hole.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_table_with_hole.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -197,3 +195,30 @@ class SawyerSweepIntoGoalEnvV2(SawyerXYZEnv):
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
+    def reset_model_ood(self, mode, ood_axis, split_per, obj_ood, goal_ood):
+        self._reset_hand()
+        self._target_pos = self.goal.copy()
+        self.obj_init_pos = self.get_body_com('obj')
+        # pdb.set_trace()
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.objHeight = self.get_body_com('obj')[2]
+        if mode == 'in_dist':
+            split_vec = np.ones(3)
+        elif mode == 'ood':
+            split_vec = np.zeros(3)
+        split_vec[ood_axis] = split_per
+        #obj
+        obj_low = self._random_reset_space.low[:3].copy() #obj before goal
+        obj_high = self._random_reset_space.high[:3].copy()
+        if obj_ood:
+            if mode == 'in_dist':
+                obj_high = obj_low + split_vec*(obj_high - obj_low)
+            elif mode == 'ood':
+                obj_low = obj_low + split_vec*(obj_high - obj_low)
+            obj_pos = np.random.uniform(obj_low, obj_high, size=(3,))
+            self.init_config['obj_init_pos'] = np.array(obj_pos, dtype=np.float32)
+            self.obj_init_pos = self.init_config['obj_init_pos']
+        self._set_obj_xyz(self.obj_init_pos)
+        self.maxPushDist = np.linalg.norm(self.obj_init_pos[:2] - np.array(self._target_pos)[:2])
+        return self._get_obs(), obj_pos, None

@@ -37,4 +37,4 @@ class SawyerCoffeeButtonV2Policy(Policy):
         if np.linalg.norm(pos_curr[[0, 2]] - pos_button[[0, 2]]) > 0.02:
             return np.array([pos_button[0], pos_curr[1], pos_button[2]])
         else:
-            return pos_button + np.array([.0, -0.05, .0])
+            return pos_button + np.array([.0, .2, .0])

@@ -46,10 +46,7 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_basketball.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_basketball.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_basketball.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -158,3 +155,41 @@ class SawyerBasketballEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place
         )
+
+    def reset_model_ood(self, mode='in_dist', ood_axis=0, split_per=0.5, obj_ood=False, goal_ood=True, obj_pos=None, goal_pos=None):
+        self._reset_hand()
+        self.prev_obs = self._get_curr_obs_combined_no_goal()        
+        if mode == 'in_dist':
+            split_vec = np.ones(3)
+        elif mode == 'ood':
+            split_vec = np.zeros(3)
+        split_vec[ood_axis] = split_per
+        # obj_pos, goal_pos = None, None
+        #obj
+        obj_low = self._random_reset_space.low[:3].copy() #obj before goal
+        obj_high = self._random_reset_space.high[:3].copy()
+        if obj_ood:
+            if mode == 'in_dist':
+                obj_high = obj_low + split_vec*(obj_high - obj_low)
+            elif mode == 'ood':
+                obj_low = obj_low + split_vec*(obj_high - obj_low)
+            if obj_pos is None:
+                obj_pos = np.random.uniform(obj_low, obj_high, size=(3,))
+            self.obj_init_pos = np.concatenate((obj_pos[:2], [self.obj_init_pos[-1]]))
+        #goal
+        goal_low = self._random_reset_space.low[3:].copy()
+        goal_high = self._random_reset_space.high[3:].copy()
+        if goal_ood:
+            if mode == 'in_dist':
+                goal_high = goal_low + split_vec*(goal_high - goal_low)
+            elif mode == 'ood':
+                goal_low = goal_low + split_vec*(goal_high - goal_low)
+            if goal_pos is None:
+                goal_pos = np.random.uniform(goal_low, goal_high, size=(3,))
+            self.goal = goal_pos
+        basket_pos = self.goal.copy()        
+        self.sim.model.body_pos[self.model.body_name2id('basket_goal')] = basket_pos
+        #TODO where is this actually being set? self.data.site_xpos
+        self._target_pos = self.data.site_xpos[self.model.site_name2id('goal')]
+        self._set_obj_xyz(self.obj_init_pos)
+        return self._get_obs(), obj_pos, goal_pos

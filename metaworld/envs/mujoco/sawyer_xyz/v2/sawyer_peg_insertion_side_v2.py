@@ -64,10 +64,7 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_peg_insertion_side.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_peg_insertion_side.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_peg_insertion_side.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -175,3 +172,43 @@ class SawyerPegInsertionSideEnvV2(SawyerXYZEnv):
 
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place, collision_boxes, ip_orig]
 
+    def reset_model_ood(self, mode='in_dist', ood_axis=0, split_per=0.5, obj_ood=False, goal_ood=True, obj_pos=None, goal_pos=None):
+        self._reset_hand()
+        pos_peg = self.obj_init_pos
+        pos_box = self.goal
+        if mode == 'in_dist':
+            split_vec = np.ones(3)
+        elif mode == 'ood':
+            split_vec = np.zeros(3)
+        split_vec[ood_axis] = split_per
+        # obj_pos, goal_pos = None, None
+        #obj
+        obj_low = self._random_reset_space.low[:3].copy() #obj before goal
+        obj_high = self._random_reset_space.high[:3].copy()
+        if obj_ood:
+            if mode == 'in_dist':
+                obj_high = obj_low + split_vec*(obj_high - obj_low)
+            elif mode == 'ood':
+                obj_low = obj_low + split_vec*(obj_high - obj_low)
+            if obj_pos is None:
+                obj_pos = np.random.uniform(obj_low, obj_high, size=(3,))
+            self.init_config['obj_init_pos'] = np.array(obj_pos, dtype=np.float32)
+            pos_peg = obj_pos.copy()
+        #goal
+        goal_low = self._random_reset_space.low[3:].copy()
+        goal_high = self._random_reset_space.high[3:].copy()
+        if goal_ood:
+            if mode == 'in_dist':
+                goal_high = goal_low + split_vec*(goal_high - goal_low)
+            elif mode == 'ood':
+                goal_low = goal_low + split_vec*(goal_high - goal_low)
+            if goal_pos is None:
+                goal_pos = np.random.uniform(goal_low, goal_high, size=(3,))
+            self.goal = goal_pos
+            pos_box = goal_pos.copy()
+        self.obj_init_pos = pos_peg
+        self.peg_head_pos_init = self._get_site_pos('pegHead')
+        self._set_obj_xyz(self.obj_init_pos)
+        self.sim.model.body_pos[self.model.body_name2id('box')] = pos_box
+        self._target_pos = pos_box + np.array([.03, .0, .13])
+        return self._get_obs(), obj_pos, goal_pos

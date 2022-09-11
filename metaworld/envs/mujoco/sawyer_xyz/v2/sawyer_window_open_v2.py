@@ -54,10 +54,7 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_window_horizontal.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_window_horizontal.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_window_horizontal.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -140,3 +137,30 @@ class SawyerWindowOpenEnvV2(SawyerXYZEnv):
                target_to_obj,
                object_grasped,
                in_place)
+
+    def reset_model_ood(self, mode, ood_axis, split_per, obj_ood, goal_ood):
+        self._reset_hand()
+        self.prev_obs = self._get_curr_obs_combined_no_goal()
+        if mode == 'in_dist':
+            split_vec = np.ones(3)
+        elif mode == 'ood':
+            split_vec = np.zeros(3)
+        split_vec[ood_axis] = split_per
+        #obj
+        obj_low = self._random_reset_space.low[:3].copy() #obj before goal
+        obj_high = self._random_reset_space.high[:3].copy()
+        if obj_ood:
+            if mode == 'in_dist':
+                obj_high = obj_low + split_vec*(obj_high - obj_low)
+            elif mode == 'ood':
+                obj_low = obj_low + split_vec*(obj_high - obj_low)
+            obj_pos = np.random.uniform(obj_low, obj_high, size=(3,))
+            self.init_config['obj_init_pos'] = np.array(obj_pos, dtype=np.float32)
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self._target_pos = self.obj_init_pos + np.array([.2, .0, .0])
+        self.sim.model.body_pos[self.model.body_name2id(
+            'window'
+        )] = self.obj_init_pos
+        self.window_handle_pos_init = self._get_pos_objects()
+        self.data.set_joint_qpos('window_slide', 0.0)
+        return self._get_obs(), obj_pos, None

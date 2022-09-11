@@ -13,7 +13,7 @@ class SawyerButtonPressTopdownEnvV2(SawyerXYZEnv):
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.8, 0.115)
-        obj_high = (0.1, 0.8, 0.115)
+        obj_high = (0.1, 0.9, 0.115)
 
         super().__init__(
             self.model_name,
@@ -40,10 +40,7 @@ class SawyerButtonPressTopdownEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_button_press_topdown.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_button_press_topdown.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_button_press_topdown.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -82,8 +79,6 @@ class SawyerButtonPressTopdownEnvV2(SawyerXYZEnv):
         return self.sim.data.get_body_xquat('button')
 
     def _set_obj_xyz(self, pos):
-        # import pdb; pdb.set_trace()
-        assert False
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
         qpos[9] = pos

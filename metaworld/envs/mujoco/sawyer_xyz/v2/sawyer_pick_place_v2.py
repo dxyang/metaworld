@@ -21,8 +21,8 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
     def __init__(self):
-        goal_low = (-0.1, 0.5, 0.05)
-        goal_high = (0.1, 0.8, 0.3)
+        goal_low = (-0.1, 0.8, 0.05)
+        goal_high = (0.1, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -57,10 +57,7 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka:
-            return full_v2_path_for('franka_xyz/franka_pick_place_v2.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_pick_place_v2.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_pick_place_v2.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -106,11 +103,6 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
             adjusted_pos[1],
             self.get_body_com('obj')[-1]
         ]
-
-    def is_not_acceptable_init(self, state_vec):
-        obj_init = state_vec[:2]
-        goal =  state_vec[3:5]
-        return bool(np.linalg.norm(obj_init - goal) < 0.15)
 
     def reset_model(self):
         self._reset_hand()
@@ -211,3 +203,43 @@ class SawyerPickPlaceEnvV2(SawyerXYZEnv):
         if obj_to_target < _TARGET_RADIUS:
             reward = 10.
         return [reward, tcp_to_obj, tcp_opened, obj_to_target, object_grasped, in_place]
+
+    def reset_model_ood(self, mode='in_dist', ood_axis=0, split_per=0.5, obj_ood=False, goal_ood=True, obj_pos=None, goal_pos=None):
+        self._reset_hand()
+        if mode == 'in_dist':
+            split_vec = np.ones(3)
+        elif mode == 'ood':
+            split_vec = np.zeros(3)
+        split_vec[ood_axis] = split_per
+        # obj_pos, goal_pos = None, None
+        #obj
+        obj_low = self._random_reset_space.low[:3].copy() #obj before goal
+        obj_high = self._random_reset_space.high[:3].copy()
+        if obj_ood:
+            if mode == 'in_dist':
+                obj_high = obj_low + split_vec*(obj_high - obj_low)
+            elif mode == 'ood':
+                obj_low = obj_low + split_vec*(obj_high - obj_low)
+            if obj_pos is None:
+                obj_pos = np.random.uniform(obj_low, obj_high, size=(3,))
+            self.init_config['obj_init_pos'] = np.array(obj_pos, dtype=np.float32)
+        #goal
+        goal_low = self.goal_space.low.copy()
+        goal_high = self.goal_space.high.copy()
+        if goal_ood:
+            if mode == 'in_dist':
+                goal_high = goal_low + split_vec*(goal_high - goal_low)
+            elif mode == 'ood':
+                goal_low = goal_low + split_vec*(goal_high - goal_low)
+            if goal_pos is None:
+                goal_pos = np.random.uniform(goal_low, goal_high, size=(3,))
+            self.goal = goal_pos
+        self._target_pos = self.goal.copy()
+        self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self.init_tcp = self.tcp_center
+        self.init_left_pad = self.get_body_com('leftpad')
+        self.init_right_pad = self.get_body_com('rightpad')
+        self._set_obj_xyz(self.obj_init_pos)
+        self.num_resets += 1
+        return self._get_obs(), obj_pos, goal_pos

@@ -51,10 +51,7 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_handle_press_sideways.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_handle_press_sideways.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_handle_press_sideways.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -115,7 +112,7 @@ class SawyerHandlePressSideEnvV2(SawyerXYZEnv):
         obj = self._get_pos_objects()
         tcp = self.tcp_center
         target = self._target_pos.copy()
-
+        
         target_to_obj = (obj[2] - target[2])
         target_to_obj = np.linalg.norm(target_to_obj)
         target_to_obj_init = (self._handle_init_pos[2] - target[2])

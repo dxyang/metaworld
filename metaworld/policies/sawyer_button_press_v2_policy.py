@@ -32,7 +32,7 @@ class SawyerButtonPressV2Policy(Policy):
     def desired_pos(o_d):
         pos_curr = o_d['hand_pos']
         pos_button = o_d['button_pos'] + np.array([0., 0., -0.07])
-
+        
         # align the gripper with the button if the gripper does not have
         # the same x and z position as the button.
         hand_x, hand_y, hand_z = pos_curr

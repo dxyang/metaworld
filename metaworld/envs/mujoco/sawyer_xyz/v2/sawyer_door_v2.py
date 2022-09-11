@@ -35,7 +35,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
         self.hand_init_pos = self.init_config['hand_init_pos']
 
         self.door_angle_idx = self.model.get_joint_qpos_addr('doorjoint')
-
+        
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -45,10 +45,7 @@ class SawyerDoorEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka:
-            return full_v2_path_for('franka_xyz/franka_door_pull.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_door_pull.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_door_pull.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

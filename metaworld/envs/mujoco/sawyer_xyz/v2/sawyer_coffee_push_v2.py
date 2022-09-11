@@ -42,10 +42,7 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_coffee.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_coffee.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_coffee.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -83,12 +80,8 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flatten()
         qvel = self.data.qvel.flatten()
-        if self.use_franka:
-            qpos[9:12] = pos.copy()
-            qvel[:6] = 0
-        else:
-            qpos[0:3] = pos.copy()
-            qvel[9:15] = 0
+        qpos[0:3] = pos.copy()
+        qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
@@ -108,7 +101,7 @@ class SawyerCoffeePushEnvV2(SawyerXYZEnv):
         self._set_obj_xyz(pos_mug_init)
         self.obj_init_pos = pos_mug_init
 
-        pos_machine = pos_mug_goal + np.array([.0, .27, .0])
+        pos_machine = pos_mug_goal + np.array([.0, .22, .0])
         self.sim.model.body_pos[self.model.body_name2id(
             'coffee_machine'
         )] = pos_machine

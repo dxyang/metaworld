@@ -1,4 +1,5 @@
 import numpy as np
+import pdb
 from gym.spaces import Box
 from scipy.spatial.transform import Rotation
 
@@ -21,8 +22,8 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         - (6/15/20) Separated reach-push-pick-place into 3 separate envs.
     """
     def __init__(self):
-        goal_low = (-0.1, 0.5, 0.05)
-        goal_high = (0.1, 0.8, 0.3)
+        goal_low = (-0.1, 0.8, 0.05)
+        goal_high = (0.1, 0.9, 0.3)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
@@ -38,6 +39,7 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             'obj_init_angle': .3,
             'obj_init_pos': np.array([0., 0.6, 0.02]),
             'hand_init_pos': np.array([0., 0.6, 0.2]),
+            # 'hand_init_pos': np.array([0., 0.7, 0.275])
         }
 
         self.goal = np.array([-0.1, 0.8, 0.2])
@@ -52,28 +54,13 @@ class SawyerReachEnvV2(SawyerXYZEnv):
         )
         self.goal_space = Box(np.array(goal_low), np.array(goal_high))
 
+        self.reduced_obs_size = 6
+
         self.num_resets = 0
 
     @property
     def model_name(self):
-        if self.use_franka:
-            return full_v2_path_for('franka_xyz/franka_reach_v2.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_reach_v2.xml')
-
-    # @property
-    # # TODO: dxy - decide how to adadpt this to different tasks
-    # def observation_space(self):
-    #     goal_low = np.zeros(3) if self._partially_observable \
-    #         else self.goal_space.low
-    #     goal_high = np.zeros(3) if self._partially_observable \
-    #         else self.goal_space.high
-
-    #     return Box(
-    #         np.hstack((self._HAND_SPACE.low, goal_low)),
-    #         np.hstack((self._HAND_SPACE.high, goal_high))
-    #     )
-
+        return full_v2_path_for('sawyer_xyz/sawyer_reach_v2.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -116,24 +103,8 @@ class SawyerReachEnvV2(SawyerXYZEnv):
             self.get_body_com('obj')[-1]
         ]
 
-    # TODO: dxy decide what to do about this
-    # def _get_obs(self):
-    #     full_obs = super()._get_obs()
-    #     eef_xyz = full_obs[:3]
-    #     goal = full_obs[-3:]
-    #     obs = np.concatenate([eef_xyz, goal])
-
-    #     return obs
-
-    def is_not_acceptable_init(self, state_vec):
-        obj_init = state_vec[:2]
-        goal =  state_vec[3:5]
-        return bool(np.linalg.norm(obj_init - goal) < 0.15)
-
-
     def reset_model(self):
         self._reset_hand()
-
         self._target_pos = self.goal.copy()
         self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
         self.obj_init_angle = self.init_config['obj_init_angle']
@@ -170,5 +141,25 @@ class SawyerReachEnvV2(SawyerXYZEnv):
 
         return [10 * in_place, tcp_to_target, in_place]
 
-    def set_goal(self, goal):
-        self._target_pos = goal.copy()
+    def reset_model_ood(self, obj_pos=None, goal_pos=None, hand_pos=None):
+        #hand
+        if hand_pos is not None:
+            self.hand_init_pos = hand_pos
+        self._reset_hand()
+        #obj
+        if obj_pos is not None:
+            self.init_config['obj_init_pos'] = np.array(obj_pos, dtype=np.float32)
+        #goal
+        if goal_pos is not None:
+            self.goal = goal_pos
+            # hack to visualize the goal
+            self.init_config['obj_init_pos'] = np.array(goal_pos, dtype=np.float32)
+        self._target_pos = self.goal.copy()
+        self.obj_init_pos = self.fix_extreme_obj_pos(self.init_config['obj_init_pos'])
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        self._set_obj_xyz(self.obj_init_pos)
+        self.num_resets += 1
+        return self._get_obs(), obj_pos, goal_pos
+
+    def reduced_obs(self, o):
+        return np.concatenate([o[:3], o[-3:]])

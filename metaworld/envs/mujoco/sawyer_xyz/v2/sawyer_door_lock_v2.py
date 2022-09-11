@@ -42,10 +42,7 @@ class SawyerDoorLockEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_door_lock.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_door_lock.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_door_lock.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

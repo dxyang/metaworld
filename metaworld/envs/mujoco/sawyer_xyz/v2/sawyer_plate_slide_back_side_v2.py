@@ -23,8 +23,8 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
     """
     def __init__(self):
 
-        goal_low = (0.05, 0.45, 0.015)
-        goal_high = (0.15, 0.75, 0.015)
+        goal_low = (-0.05, 0.6, 0.015)
+        goal_high = (0.15, 0.6, 0.015)
         hand_low = (-0.5, 0.40, 0.05)
         hand_high = (0.5, 1, 0.5)
         obj_low = (-0.25, 0.6, 0.)
@@ -54,10 +54,7 @@ class SawyerPlateSlideBackSideEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_plate_slide_sideway.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_plate_slide_sideway.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_plate_slide_sideway.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):

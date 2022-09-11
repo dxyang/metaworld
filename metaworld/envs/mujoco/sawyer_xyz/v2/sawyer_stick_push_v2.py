@@ -42,10 +42,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.use_franka: # franka
-            return full_v2_path_for('franka_xyz/franka_stick_obj.xml')
-        else:
-            return full_v2_path_for('sawyer_xyz/sawyer_stick_obj.xml')
+        return full_v2_path_for('sawyer_xyz/sawyer_stick_obj.xml')
 
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
@@ -119,7 +116,7 @@ class SawyerStickPushEnvV2(SawyerXYZEnv):
         self.obj_init_pos = self.get_body_com('object').copy()
 
         return self._get_obs()
-
+    
     def _gripper_caging_reward(self,
                                action,
                                obj_pos,

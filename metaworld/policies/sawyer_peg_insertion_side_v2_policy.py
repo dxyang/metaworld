@@ -3,15 +3,12 @@ import numpy as np
 from metaworld.policies.action import Action
 from metaworld.policies.policy import Policy, assert_fully_parsed, move
 
-hack = False
+
 class SawyerPegInsertionSideV2Policy(Policy):
 
     @staticmethod
+    @assert_fully_parsed
     def _parse_obs(obs):
-        if np.allclose(obs[:3], np.array([0, 0.6, 0.2]), rtol=0.1, atol=0.1) and (abs(obs[6] - 0.02) < 0.01):
-            global hack
-            hack = False
-
         return {
             'hand_pos': obs[:3],
             'gripper_distance_apart': obs[3],
@@ -44,21 +41,14 @@ class SawyerPegInsertionSideV2Policy(Policy):
         # Z is constant at .16
         pos_hole = np.array([-.35, o_d['goal_pos'][1], .16])
 
-        global hack
-
-        if not hack:
-            if np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > .04:
-                return pos_peg + np.array([.0, .0, .3])
-            elif abs(pos_curr[2] - pos_peg[2]) > .025:
-                return pos_peg
-            else:
-                hack = True
-
-        if hack:
-            if np.linalg.norm(pos_peg[1:] - pos_hole[1:]) > 0.04:
-                return pos_hole + np.array([.5, .0, .0])
-            else:
-                return pos_hole
+        if np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > .04:
+            return pos_peg + np.array([.0, .0, .3])
+        elif abs(pos_curr[2] - pos_peg[2]) > .025:
+            return pos_peg
+        elif np.linalg.norm(pos_peg[1:] - pos_hole[1:]) > 0.03:
+            return pos_hole + np.array([.4, .0, .0])
+        else:
+            return pos_hole
 
     @staticmethod
     def _grab_effort(o_d):

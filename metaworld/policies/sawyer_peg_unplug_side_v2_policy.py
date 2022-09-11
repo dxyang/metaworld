@@ -47,7 +47,7 @@ class SawyerPegUnplugSideV2Policy(Policy):
         pos_peg = o_d['peg_pos'] + np.array([-.02, .0, .035])
 
         if np.linalg.norm(pos_curr[:2] - pos_peg[:2]) > 0.04 \
-            or abs(pos_curr[2] - pos_peg[2]) > 0.05:
+            or abs(pos_curr[2] - pos_peg[2]) > 0.15:
             return -1.
         else:
-            return .5
+            return .1
