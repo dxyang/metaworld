@@ -25,7 +25,7 @@ extras['dev'] = [
 
 setup(
     name='metaworld',
-    packages=find_packages(),
+    packages=['metaworld', 'tests', 'ood_similar_shifts', 'scripts'],
     include_package_data=True,
     install_requires=required,
     extras_require=extras,

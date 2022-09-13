@@ -23,12 +23,12 @@ class SawyerPushEnvV2(SawyerXYZEnv):
     TARGET_RADIUS=0.05
 
     def __init__(self):
-        hand_low = (-0.5, 0.40, 0.05)
-        hand_high = (0.5, 1, 0.5)
+        hand_low = (-0.3, 0.40, 0.05)
+        hand_high = (0.3, 0.90, 0.5)
         obj_low = (-0.1, 0.6, 0.02)
         obj_high = (0.1, 0.7, 0.02)
-        goal_low = (-0.1, 0.8, 0.01)
-        goal_high = (0.1, 0.9, 0.02)
+        goal_low = (-0.1, 0.7, 0.015)
+        goal_high = (0.1, 0.9, 0.015)
 
         super().__init__(
             self.model_name,
@@ -41,7 +41,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
             # 'obj_init_pos': np.array([0., 0.6, 0.02]),
             # 'hand_init_pos': np.array([0., 0.6, 0.2]),
             'obj_init_pos': np.array([0., 0.4, 0.02]),
-            'hand_init_pos': np.array([0., 0.4, 0.08]),            
+            'hand_init_pos': np.array([0., 0.4, 0.08]),
         }
 
         self.goal = np.array([0.1, 0.8, 0.02])
@@ -183,7 +183,7 @@ class SawyerPushEnvV2(SawyerXYZEnv):
     def reset_model_ood(self, obj_pos=None, goal_pos=None, hand_pos=None):
         #hand
         if hand_pos is not None:
-            self.hand_init_pos = hand_pos        
+            self.hand_init_pos = hand_pos
         self._reset_hand()
         #obj
         if obj_pos is not None:
@@ -197,6 +197,6 @@ class SawyerPushEnvV2(SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
         self.num_resets += 1
         return self._get_obs(), obj_pos, goal_pos
-    
+
     def reduced_obs(self, o):
-        return np.concatenate([o[:7], o[-3:]])        
+        return np.concatenate([o[:7], o[-3:]])
