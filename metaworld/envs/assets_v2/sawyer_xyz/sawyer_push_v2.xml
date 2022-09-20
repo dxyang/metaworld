@@ -24,8 +24,10 @@
       </body>
 
       <!-- push goal -->
+      <!-- <site name="goal" pos="0.1 0.8 0.02" size="0.02"
+            rgba="0 0.8 0 1"/> -->
       <site name="goal" pos="0.1 0.8 0.02" size="0.02"
-            rgba="0 0.8 0 1"/>
+            rgba="0 0.8 0 0.0"/>
       <!-- goal sampling -->
       <!-- magenta ood -->
       <!-- <site type="box" pos=".05 .85 .015" size=".05 .05 .005" rgba=".9 .1 .9 1"/> -->
