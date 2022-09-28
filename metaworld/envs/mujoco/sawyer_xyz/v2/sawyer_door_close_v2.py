@@ -45,6 +45,24 @@ class SawyerDoorCloseEnvV2(SawyerDoorEnvV2):
 
         return self._get_obs()
 
+    def reset_model_ood(self, obj_pos=None, goal_pos=None, hand_pos=None):
+        self._reset_hand()
+
+        if obj_pos is not None:
+            self.init_config['obj_init_pos'] = np.array(obj_pos, dtype=np.float32)
+
+        self.objHeight = self.data.get_geom_xpos('handle')[2]
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self._target_pos = self.obj_init_pos + np.array([0.2, -0.2, 0.])
+        goal_pos = self._target_pos
+
+        self.sim.model.body_pos[self.model.body_name2id('door')] = self.obj_init_pos
+        self.sim.model.site_pos[self.model.site_name2id('goal')] = self._target_pos
+
+        self._set_obj_xyz(-1.5708)
+
+        return self._get_obs(), obj_pos, goal_pos
+
     @_assert_task_is_set
     def evaluate_state(self, obs, action):
         reward, obj_to_target, in_place = self.compute_reward(action, obs)
