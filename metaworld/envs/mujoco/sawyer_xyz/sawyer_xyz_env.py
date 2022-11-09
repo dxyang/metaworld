@@ -121,6 +121,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self._render_img_res = 224
         else:
             self._render_img_res = 84
+        self._camera_name = 'topview'
 
         # We use continuous goal space by default and
         # can discretize the goal space by calling
@@ -388,7 +389,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
             if self._do_render_for_obs:
                 # HWC
-                curr_img = self.sim.render(self._render_img_res, self._render_img_res, mode='offscreen', camera_name='topview')
+                curr_img = self.sim.render(self._render_img_res, self._render_img_res, mode='offscreen', camera_name=self._camera_name)
+                if self._camera_name in ["topview", "top_cap2", "left_cap2", "right_cap2"]:
+                    curr_img = np.flipud(curr_img)
                 return_dict["image_observation"] = curr_img.copy()
 
             return return_dict
@@ -396,6 +399,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             return obs
 
     def _get_obs_dict(self):
+        assert False
+        # this is a deprecated code path used by the `train_ranking_metaworld_images.py` family of scripts to gather data
         obs = self._get_obs()
         return_dict = dict(
             state_observation=obs,
