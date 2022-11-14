@@ -117,10 +117,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._obs_dict_state_space = False
         self._do_render_for_obs = False
         self._render_higher_res_obs = False
-        if self._render_higher_res_obs:
-            self._render_img_res = 224
-        else:
-            self._render_img_res = 84
         self._camera_name = 'topview'
 
         # We use continuous goal space by default and
@@ -388,6 +384,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             )
 
             if self._do_render_for_obs:
+                if self._render_higher_res_obs:
+                    self._render_img_res = 224
+                else:
+                    self._render_img_res = 84
+
                 # HWC
                 curr_img = self.sim.render(self._render_img_res, self._render_img_res, mode='offscreen', camera_name=self._camera_name)
                 if self._camera_name in ["topview", "top_cap2", "left_cap2", "right_cap2"]:
