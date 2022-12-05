@@ -184,3 +184,21 @@ class SawyerNutAssemblyEnvV2(SawyerXYZEnv):
             reward_in_place,
             success,
         )
+
+    def reset_model_ood(self, obj_pos=None, goal_pos=None, hand_pos=None):
+        if hand_pos is not None:
+            self.init_config['hand_init_pos'] = np.array(obj_pos, dtype=np.float32)
+        self._reset_hand()
+        #obj
+        if obj_pos is not None:
+            self.init_config['obj_init_pos'] = np.array(obj_pos, dtype=np.float32)
+
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self._target_pos = goal_pos.copy()
+
+        peg_pos = self._target_pos - np.array([0., 0., 0.05])
+        self._set_obj_xyz(self.obj_init_pos)
+        self.sim.model.body_pos[self.model.body_name2id('peg')] = peg_pos
+        self.sim.model.site_pos[self.model.site_name2id('pegTop')] = self._target_pos
+
+        return self._get_obs(), obj_pos, goal_pos

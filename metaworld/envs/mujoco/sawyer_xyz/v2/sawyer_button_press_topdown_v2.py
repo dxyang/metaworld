@@ -137,3 +137,24 @@ class SawyerButtonPressTopdownEnvV2(SawyerXYZEnv):
             near_button,
             button_pressed
         )
+
+    def reset_model_ood(self, obj_pos=None, goal_pos=None, hand_pos=None):
+        assert hand_pos is None
+        assert goal_pos is None
+
+        self._reset_hand()
+        #obj
+        if obj_pos is not None:
+            self.init_config['obj_init_pos'] = np.array(obj_pos, dtype=np.float32)
+
+        self._target_pos = self.goal.copy()
+        self.obj_init_pos = self.init_config['obj_init_pos']
+
+        self.sim.model.body_pos[self.model.body_name2id('box')] = self.obj_init_pos
+        self._target_pos = self._get_site_pos('hole')
+
+        self._obj_to_target_init = abs(
+            self._target_pos[2] - self._get_site_pos('buttonStart')[2]
+        )
+
+        return self._get_obs(), obj_pos, goal_pos

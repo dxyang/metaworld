@@ -32,7 +32,7 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
         goal_low = self.hand_low
         goal_high = self.hand_high
 
-        
+
 
         self._random_reset_space = Box(
             np.array(obj_low),
@@ -136,3 +136,24 @@ class SawyerDrawerOpenEnvV2(SawyerXYZEnv):
             reward_for_caging,
             reward_for_opening
         )
+
+    def reset_model_ood(self, obj_pos=None, goal_pos=None, hand_pos=None):
+        assert hand_pos is None
+        assert goal_pos is None
+
+        self._reset_hand()
+        self.prev_obs = self._get_curr_obs_combined_no_goal()
+        #obj
+        if obj_pos is not None:
+            self.init_config['obj_init_pos'] = np.array(obj_pos, dtype=np.float32)
+
+        # Compute nightstand position
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        # Set mujoco body to computed position
+        self.sim.model.body_pos[self.model.body_name2id(
+            'drawer'
+        )] = self.obj_init_pos
+        # Set _target_pos to current drawer position (closed) minus an offset
+        self._target_pos = self.obj_init_pos + np.array([.0, -.16 - self.maxDist, .09])
+
+        return self._get_obs(), obj_pos, goal_pos

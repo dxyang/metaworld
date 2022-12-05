@@ -189,3 +189,24 @@ class SawyerBinPickingEnvV2(SawyerXYZEnv):
             object_grasped,
             in_place
         )
+
+    def reset_model_ood(self, obj_pos=None, goal_pos=None, hand_pos=None):
+        if hand_pos is not None:
+            self.init_config['hand_init_pos'] = np.array(obj_pos, dtype=np.float32)
+        self._reset_hand()
+        #obj
+        if obj_pos is not None:
+            self.init_config['obj_init_pos'] = np.array(obj_pos, dtype=np.float32)
+
+        self.obj_init_pos = self.init_config['obj_init_pos']
+        self.obj_init_angle = self.init_config['obj_init_angle']
+        obj_height = self.get_body_com('obj')[2]
+
+        self.obj_init_pos = obj_pos.copy()
+        self.obj_init_pos[2] = obj_height
+
+        self._set_obj_xyz(self.obj_init_pos)
+        self._target_pos = self.get_body_com('bin_goal')
+        self._target_to_obj_init = None
+
+        return self._get_obs(), obj_pos, goal_pos

@@ -170,3 +170,29 @@ class SawyerHammerEnvV2(SawyerXYZEnv):
             reward_in_place,
             success,
         )
+
+    def reset_model_ood(self, obj_pos=None, goal_pos=None, hand_pos=None):
+        assert hand_pos is None
+        assert goal_pos is None
+        assert obj_pos is not None
+
+        self._reset_hand()
+
+        # Set position of box & nail (these are not randomized)
+        self.sim.model.body_pos[self.model.body_name2id(
+            'box'
+        )] = np.array([0.24, 0.85, 0.0])
+        # Update _target_pos
+        self._target_pos = self._get_site_pos('goal')
+
+        #obj
+        if obj_pos is not None:
+            self.hammer_init_pos = obj_pos.copy()
+        else:
+            self.hammer_init_pos = self.init_config['hammer_init_pos']
+
+        self.nail_init_pos = self._get_site_pos('nailHead')
+        self.obj_init_pos = self.hammer_init_pos.copy()
+        self._set_hammer_xyz(self.hammer_init_pos)
+
+        return self._get_obs(), obj_pos, goal_pos
