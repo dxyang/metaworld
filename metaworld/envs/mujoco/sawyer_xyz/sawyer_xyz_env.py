@@ -117,6 +117,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         self._obs_dict_state_space = False
         self._do_render_for_obs = False
         self._render_higher_res_obs = False
+        self._render_rlpd_res_obs = False
         self._camera_name = 'topview'
 
         # We use continuous goal space by default and
@@ -386,6 +387,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             if self._do_render_for_obs:
                 if self._render_higher_res_obs:
                     self._render_img_res = 224
+                elif self._render_rlpd_res_obs:
+                    self._render_img_res = 64
                 else:
                     self._render_img_res = 84
 
