@@ -442,6 +442,16 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     @_assert_task_is_set
     def step(self, action):
+        # this seems to show up in assembly? short circuiting for safety and avoiding running the sim?
+        if self.curr_path_length >= self.max_path_length:
+            print(f"[{self.curr_path_length} / {self.max_path_length}] weird case, not sure how we got here")
+            if self._obs_dict_state_space:
+                reward, info = self.evaluate_state(self._last_stable_obs["state_observation"], action)
+            else:
+                reward, info = self.evaluate_state(self._last_stable_obs, action)
+            done = True
+            return self._last_stable_obs, reward, done, info
+
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
         self.curr_path_length += 1
@@ -481,7 +491,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
         else:
             reward, info = self.evaluate_state(self._last_stable_obs, action)
         # done = info['success'] or self.curr_path_length == self.max_path_length
-        done = self.curr_path_length == self.max_path_length
+        done = self.curr_path_length >= self.max_path_length
         # return self._last_stable_obs, -reward, done, info
         # done = self.curr_path_length == 100 #instead of timelimit wrapper
         return self._last_stable_obs, reward, done, info
