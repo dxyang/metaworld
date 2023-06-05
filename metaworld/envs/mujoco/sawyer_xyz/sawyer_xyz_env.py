@@ -450,6 +450,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             else:
                 reward, info = self.evaluate_state(self._last_stable_obs, action)
             done = True
+            self.curr_path_length += 1
             return self._last_stable_obs, reward, done, info
 
         self.set_xyz_action(action[:3])
